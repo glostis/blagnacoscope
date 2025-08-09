@@ -268,11 +268,11 @@ st.markdown(
     """
 This page is an interactive dashboard that can be used to dig into the takeoffs / landings data.
 
-You can apply filters on the table just below on the columns of your choice, and these filters will be refleted
+You can apply filters on the table just below on the columns of your choice, and these filters will be reflected
 on all the tables and the map below.
 
 For example, filter on `airline = EZY` to see all destinations of easyJet flights, or filter on `hour < 6` to see
-flights taking off or landing at nights.
+flights taking off or landing at night.
 """
 )
 df = aggregate_takeoffs_landings()

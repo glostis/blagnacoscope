@@ -1,12 +1,10 @@
-version: "3"
-
 services:
   streamlit:
     image: blagnac
     build: ./
     profiles: ["front"]
     ports:
-        - 8082:1234
+        - 8084:1234
     volumes:
       - ./:/app/
     command: streamlit run --server.port 1234 streamlit/Introduction.py
@@ -23,7 +21,6 @@ services:
       - ./:/app/
     command: python scrape.py
     restart: unless-stopped
-
 
 networks:
   default:

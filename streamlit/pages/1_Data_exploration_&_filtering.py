@@ -18,6 +18,10 @@ st.set_page_config(
 
 DB_CONN = st.connection("db", type="sql")
 
+HEATMAP_LIMIT = 100_000
+HEATMAP_LIMIT_HELP = f"""
+For page performance reasons, only the first {HEATMAP_LIMIT:,} database records are displayed in this heatmap."""
+
 
 def intro():
     st.markdown(
@@ -119,7 +123,7 @@ may be of interest to filter out aircraft that are on the ground:
 - `ground_speed`: We can set a minimum speed threshold — say 20 knots — under which we know for a fact that aircraft
    cannot be airborne
 
-Using the filtering condition `{AIRBORNE_WHERE},` out of the {all_df['count'].iloc[0]:,} records in the database, only
+Using the filtering condition `{AIRBORNE_WHERE},` out of the {all_df["count"].iloc[0]:,} records in the database, only
 {pct_airborne:.1f}% are records of aircraft that are airborne.
 
 **In all of the following analyses (stats, graphs, queries), only the records of aircraft that are airborne will be
@@ -140,7 +144,7 @@ considered.**
         "ground_speed",
         "vertical_speed",
     ]:
-        query = "select " f"min({column}) as min, " f"max({column}) as max, " f"round(avg({column}), 2) as avg "
+        query = f"select min({column}) as min, max({column}) as max, round(avg({column}), 2) as avg "
         df = db_query(db_conn, query, where=AIRBORNE_WHERE).transpose().rename(columns={0: column})
         dfs.append(df)
     col1, col2 = st.columns(2)
@@ -204,7 +208,7 @@ of the peaks.*
         """
 On this histogram, we can see 3 major peaks around "round values" of altitude: 34 000ft, 36 000ft, and 38 000ft.
 This is due to the fact that when in flight, aicraft fly at a given discrete
-[flight level](https://en.wikipedia.org/wiki/Flight_level). These 3 peaks correspond to the ADS-B pings of the aicraft
+[flight level](https://en.wikipedia.org/wiki/Flight_level). These 3 peaks correspond to the ADS-B pings of the aircraft
 following the two high-altitude routes mentionned earlier.
 """
     )
@@ -236,7 +240,7 @@ speed given by their instructor?
 def heatmap_section(db_conn):
     st.header("Heatmap", divider=True)
 
-    df = db_query(db_conn, "select latitude, longitude", where=AIRBORNE_WHERE)
+    df = db_query(db_conn, "select latitude, longitude", where=AIRBORNE_WHERE, limit=HEATMAP_LIMIT)
 
     gdf = features_from_bbox(43.76, 43.49, 1.18, 1.55, tags={"aeroway": ["aerodrome", "runway"]})
     runways = gdf[(gdf.aeroway == "runway") & (gdf.geom_type == "LineString") & (gdf.surface == "asphalt")]
@@ -311,7 +315,9 @@ def heatmap_section(db_conn):
         f"""
 The map above shows the runways of the {len(airports)} airports present in the zone covered by data
 (in :green[green]), and a heatmap of all of the ADS-B pings contained in the database.
-        """
+        """,
+        help=HEATMAP_LIMIT_HELP
+        + "\nThe runway data was fetched on the fly from OpenStreetMap using [osmnx](https://osmnx.readthedocs.io/en/stable/).",
     )
     st.dataframe(airports[["icao", "name"]], hide_index=True)
     st.markdown(
@@ -351,7 +357,7 @@ We'll therefore stick with a plain old `point.within(polygon)` in [shapely](http
 """
     )
 
-    df = db_query(DB_CONN, "select *", where=TOFF_LAN_WHERE)
+    df = db_query(DB_CONN, "select latitude, longitude", where=TOFF_LAN_WHERE, limit=HEATMAP_LIMIT)
     zone = airport_zones()
     x, y = zone.exterior.coords.xy
     coordinates = [(xx, yy) for xx, yy in zip(x, y)]
@@ -388,7 +394,8 @@ We'll therefore stick with a plain old `point.within(polygon)` in [shapely](http
 The heatmap above shows:
 - the points resulting from the SQL query shown above
 - the polygon that is used afterwards in python to only keep points within it
-"""
+""",
+        help=HEATMAP_LIMIT_HELP,
     )
 
 
