@@ -2,7 +2,6 @@ services:
   streamlit:
     image: blagnac
     build: ./
-    profiles: ["front"]
     ports:
         - 8084:1234
     volumes:
@@ -12,17 +11,18 @@ services:
       - VIRTUAL_HOST
       - LETSENCRYPT_HOST
       - LETSENCRYPT_EMAIL
-
-  scraper:
-    image: blagnac
-    build: ./
-    profiles: ["back"]
-    volumes:
-      - ./:/app/
-    command: python scrape.py
     restart: unless-stopped
+    networks:
+      - nginx-proxy
+
+#  scraper:
+#    image: blagnac
+#    build: ./
+#    profiles: ["back"]
+#    volumes:
+#      - ./:/app/
+#    command: python scrape.py
 
 networks:
-  default:
-    name: nginx-proxy
+  nginx-proxy:
     external: true

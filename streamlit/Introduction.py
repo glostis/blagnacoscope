@@ -20,5 +20,9 @@ The goal of the project was to be able to answer the following questions:
 - Which runway is used when?
 
 The following pages dive into the data to see what insights we can get from it.
+
+The source code for this project can be found on [Github](https://github.com/glostis/blagnacoscope).
+
+:warning: :snail: The server hosting this website is a small VPS instance, so some pages may take a while to load.
     """
 )
