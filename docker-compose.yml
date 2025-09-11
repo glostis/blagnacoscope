@@ -2,18 +2,17 @@ services:
   streamlit:
     image: blagnac
     build: ./
-    ports:
-        - 8084:1234
     volumes:
       - ./:/app/
     command: streamlit run --server.port 1234 streamlit/Introduction.py
-    environment:
-      - VIRTUAL_HOST
-      - LETSENCRYPT_HOST
-      - LETSENCRYPT_EMAIL
     restart: unless-stopped
-    networks:
-      - nginx-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blagnacoscope.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.services.blagnacoscope.loadbalancer.server.port=1234"
+      - "traefik.http.routers.blagnacoscope.entrypoints=websecure"
+      - "traefik.http.routers.blagnacoscope.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.blagnacoscope.tls=true"
 
 #  scraper:
 #    image: blagnac
@@ -22,7 +21,3 @@ services:
 #    volumes:
 #      - ./:/app/
 #    command: python scrape.py
-
-networks:
-  nginx-proxy:
-    external: true
